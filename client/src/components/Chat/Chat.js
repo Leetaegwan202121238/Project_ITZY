@@ -18,8 +18,8 @@ const Chat = ({ location }) => {
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
 
-    const ENDPOINT = 'localhost:5000';
-
+    //aws ec2 주소
+    const ENDPOINT = '3.92.68.192:5000';
 
     //socket을 통해 name과 room url정보 전달
     useEffect(() => {
