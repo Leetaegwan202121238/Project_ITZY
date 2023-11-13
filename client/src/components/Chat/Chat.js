@@ -19,7 +19,7 @@ const Chat = ({ location }) => {
     const [messages, setMessages] = useState([]);
 
     //aws 주소
-    const ENDPOINT = ' 3.88.57.18:5000';
+    const ENDPOINT = 'localhost:5000';
 
     //socket을 통해 name과 room url정보 전달
     useEffect(() => {
@@ -63,8 +63,7 @@ const Chat = ({ location }) => {
         <div className="outerContainer">
             <div className="container">
                 <InfoBar room={room} />
-                <Messages messages={messages} name ={name} />
-                
+                <Messages messages={messages} name ={name} />               
                 <Input message = {message} setMessage = {setMessage} sendMessage={sendMessage} />
             </div>
         </div>
