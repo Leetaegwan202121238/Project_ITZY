@@ -13,9 +13,6 @@ const mysql = require('mysql');  //주정
 const bcrypt = require('bcrypt'); //주정
 const path = require('path'); //주정
 
-/**
- * http 서버에 express서버랑 socket.io 서버 올림
- */
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
@@ -76,9 +73,6 @@ app.post('/process/login', (req, res) => {
     });
 });
 
-/**
- * io 통신 코드(io.emit => 말하는 거 // io.on => 듣는 거)
- */
 //바로 아래 코드 socket변수에는 연결된 사람 정보 들어감
 io.on('connection', (socket) => {
     console.log(`We have a new connection.`);
