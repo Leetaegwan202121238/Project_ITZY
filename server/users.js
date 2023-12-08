@@ -24,7 +24,13 @@ const removeUser =(id) => {
 //id를 찾아서 id 배열값을 반환
 const getUser = (id) => users.find((user) => user.id === id);
 
-//room 찾는
+//room에서 모든 사용자 찾는
 const getUsersInRoom = (room) => users.filter((user) => user.room === room);
 
-module.exports = { addUser, removeUser, getUser, getUsersInRoom };
+const getUniqueRooms = () => {
+    // 사용자 배열에서 중복을 제외한 방 이름 목록을 얻기 위해 Set을 사용
+    const uniqueRooms = [...new Set(users.map(user => user.room))];
+    return uniqueRooms;
+};
+
+module.exports = { addUser, removeUser, getUser, getUsersInRoom, getUniqueRooms };
