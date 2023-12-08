@@ -1,12 +1,12 @@
 const users = [];
 
-const addUser = ({ id, name, room }) => {
+const addUser = ({ id, name, room, lasts }) => {
     name = name.trim().toLowerCase();
     room = room.trim().toLowerCase();
 
     const existingUser = users.find((user) => user.room === room && user.name === name);
     
-    const user = {id, name, room};
+    const user = {id, name, room, lasts};
 
     users.push(user);
 
@@ -33,4 +33,13 @@ const getUniqueRooms = () => {
     return uniqueRooms;
 };
 
-module.exports = { addUser, removeUser, getUser, getUsersInRoom, getUniqueRooms };
+const editlasts =(room, ss) => {
+    for(const key in users){
+        if(room==users[key].room){
+            users[key].lasts=ss;
+        }
+    }
+    return users;
+}
+
+module.exports = { addUser, removeUser, getUser, getUsersInRoom, getUniqueRooms, editlasts };
