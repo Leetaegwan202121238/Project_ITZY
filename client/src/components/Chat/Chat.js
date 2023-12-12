@@ -33,7 +33,7 @@ const Chat = ({ location }) => {
     };
 
     //서버로 둘 aws public 주소
-    const ENDPOINT = 'localhost:5000';
+    const ENDPOINT = '54.87.129.134:5000';
 
     //socket을 통해 name과 room url정보 전달
     useEffect(() => {
@@ -82,9 +82,14 @@ const Chat = ({ location }) => {
 
     //game 시작
     const handleGameStart = () => {
-        if(myIndex === 0){
-         socket.emit('gameStart', { room });
-         setIsGameStarted(true);
+        if(myIndex === 0 ){
+            if(isGameStarted === false){
+                socket.emit('gameStart', { room });
+                setIsGameStarted(true);
+            }else{
+                alert("지금은 게임 중입니다");
+            }
+
         }else {
             alert("방장만이 게임시작이 가능합니다");
         }
@@ -116,6 +121,13 @@ const Chat = ({ location }) => {
             socket.off('turnStart', turnHandler);
         };
     }, [socket, myIndex]);
+
+    useEffect(() => {
+    socket.on('gameover', () => {   
+        setIsGameStarted(false);
+    });
+    },[]);
+
 
     
     return (
