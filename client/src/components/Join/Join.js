@@ -14,8 +14,11 @@ const Join = () => {
                 <div><input placeholder="닉네임" className="joinInput" type="text" onChange={(event)=> setName(event.target.value)} /></div>
                 <div><input placeholder="방 번호" className="joinInput mt-20" type="text" onChange={(event)=> setRoom(event.target.value)} /></div>
                 <Link onClick={event => (!name || !room) ? event.preventDefault():null} to={`/chat?name=${name}&room=${room}`}>
-                    <button className="button mt-20" type="submit"> Sign In</button>
+                    <button className="button mt-20" type="submit"> 입장 하기</button>
                 </Link>
+                <Link to="/rooms"> 
+                    <button className="button mt-20" type="button"> 대기방 보기</button>
+                </Link>  
             </div>
         </div>
 

@@ -3,6 +3,16 @@ import { useParams, useLocation } from 'react-router-dom';
 import queryString from 'query-string';
 import io from 'socket.io-client';
 
+//소리 불러오기
+import correct from '../../bgm/correct.mp3';
+import wrong from '../../bgm/incorrect.mp3';
+import roundEnd from '../../bgm/roundEnd.mp3';
+
+//이미지 불러오기
+import player from '../../icons/player.png';
+
+
+
 import './Chat.css';
 import InfoBar from '../InfoBar/InfoBar';
 import Input from '../Input/Input';
@@ -15,6 +25,16 @@ const Chat = ({ location }) => {
     const [room, setRoom] = useState('');
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
+    //사람 몇명 들어왔나
+    const [numberOfUsers, setNumberOfUsers] = useState(0);
+
+    //점수 및 경험치용
+    const [score, setScore] = useState(0);
+
+    const correctSound = new Audio(correct);
+    const wrongSound = new Audio(wrong);
+    const roundEndSound = new Audio(roundEnd);
+    const playerimage = new Image(player);
     
     //게임 시작되면 true로 바꿀 변수(게임 중인지 아닌지 확인하려고)
     const [isGameStarted, setIsGameStarted] = useState(false);
@@ -33,7 +53,7 @@ const Chat = ({ location }) => {
     };
 
     //서버로 둘 aws public 주소
-    const ENDPOINT = '54.87.129.134:5000';
+    const ENDPOINT = 'localhost:5000';
 
     //socket을 통해 name과 room url정보 전달
     useEffect(() => {
@@ -122,13 +142,48 @@ const Chat = ({ location }) => {
         };
     }, [socket, myIndex]);
 
+    //게임 종료 이벤트 받기
     useEffect(() => {
-    socket.on('gameover', () => {   
+    socket.on('gameover', () => {
+
+        //서버에 점수 보내기   
+        socket.emit('sendScore', { score });
+        setScore(0);
+
+        //게임상태 초기화
         setIsGameStarted(false);
+    });
+    },[score]);
+
+
+    //효과음 넣기
+    useEffect(() => {
+    socket.on('correctSignal', ({ score }) => {
+        correctSound.play(); 
+
+        setScore(prevScore => prevScore + score);
+    });
+    socket.on('wrongSignal', function() {
+        wrongSound.play(); 
+    });
+    socket.on('roundEnd', function() {
+        roundEndSound.play(); 
     });
     },[]);
 
+    //사람 몇명 들어왔나
+    useEffect(() => {
+        socket.on('usersCount', (count) => {
+            setNumberOfUsers(count);
+        });
+    
+        return () => {
+            socket.off('usersCount');
+        };
+    }, []);
 
+
+    
     
     return (
         <div className="outerContainer">
@@ -138,6 +193,11 @@ const Chat = ({ location }) => {
                 <Input message = {message} setMessage = {setMessage} sendMessage={sendMessage} />
                 <button onClick={handleGameStart} style={{ backgroundColor: myIndex === 0 && !isGameStarted ? '#3399FF' : 'grey' }}>게임 시작</button>
                 <p id="timer">10</p>
+
+                {/* Render images */}
+                {Array(numberOfUsers).fill().map((_, i) => (
+                <img key={i} src={player} alt="Player" />
+            ))}
             </div>
         </div>
     )

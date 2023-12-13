@@ -14,11 +14,15 @@ const server = http.createServer(app);
 const io = socketio(server);
 let RoomsList = getUniqueRooms();
 const games = {};
-const fetch = require('node-fetch');
+
+//지금 들어가있는 단어
+let currentWords = {};
+
+//리눅스에선 이거 추가해야함
+//const fetch = require('node-fetch'); 
 
 const key="88BF1D891A90A3C4F5075AFD1DA41F76";
 const methodType = "&type_search=view&req_type=json&method=TARGET_CODE&q=";
-
 
 
 app.use(router);
@@ -34,8 +38,6 @@ io.on('connection', (socket) =>{
     socket.on('join', ({name, room}, callback) => {
         console.log(name,room);
                 
-        //지금 들어가 있는 단어
-        let currentWord = '';
 
         const { user } = addUser({ id: socket.id, name, room });
 
@@ -55,6 +57,10 @@ io.on('connection', (socket) =>{
         callback(myIndex); 
 
         RoomsList = getUniqueRooms();
+        //방에 몇명있나
+        const numberOfUsers = usersInRoom.length;
+        io.to(user.room).emit('usersCount', numberOfUsers);
+
     });
 
     socket.on('sendMessage', (message, callback) => {
@@ -66,8 +72,8 @@ io.on('connection', (socket) =>{
         fetch(url)
         .then((response)=>response.text())
         .then(data=>{
-            if (game && game.players[game.currentPlayerIndex].id === user.id) {
-                if(data!="" && (currentWord === '' || currentWord[currentWord.length - 1] === message[0])){
+            if (game && (game.players[game.currentPlayerIndex].id === user.id)) {
+                if(data!="" && (currentWords[user.room] === '' || currentWords[user.room][currentWords[user.room].length - 1] === message[0])){
                     const apiresult=JSON.parse(data);
                     var ran=apiresult.channel.total;
                     const rannum=Math.floor(Math.random()*ran);
@@ -75,11 +81,18 @@ io.on('connection', (socket) =>{
                     io.to(user.room).emit('message', { user: user.name, text: "뜻 : " + apiresult.channel.item[rannum].sense.definition})
                     endTurn(user.room);
                     console.log(message)
-                    currentWord = message;
+                    currentWords[user.room] = message;
 
+                    //정답 소리내기 및 점수 보내기
+                    const remainingTime = getRemainingTime();
+                    const messageScore = message.length * remainingTime;
+                    io.to(user.room).emit('correctSignal', { score: messageScore });
+                    
                 }
                 else{
                     callback('표준어가 아닙니다.')
+                    //틀렸을 때
+                    io.to(user.room).emit('wrongSignal');
                 }
             } else if (game) {
                 callback('게임이 진행중이지만 당신의 차례가 아닙니다.');
@@ -87,18 +100,7 @@ io.on('connection', (socket) =>{
                 callback('게임이 아직 시작되지 않았습니다.');
             }
         })
-
-        //게임 중인지, 차례가 맞는지 로직
-        // if (game && game.players[game.currentPlayerIndex].id === user.id) {
-        //     io.to(user.room).emit('message', { user: user.name, text: message});
-        //     endTurn(user.room);
-        // } else if (game) {
-        //     callback('게임이 진행중이지만 당신의 차례가 아닙니다.');
-        // } else {
-        //     callback('게임이 아직 시작되지 않았습니다.');
-        // }
     });
-
 
     socket.on('disconnect', () => {
         console.log(`User had left`);
@@ -106,12 +108,13 @@ io.on('connection', (socket) =>{
 
     //게임 시작
     socket.on('gameStart', ({ room }) => {
-        currentWord = '';
+        currentWords[room] = '';
 
         games[room] = {
             currentPlayerIndex: 0, 
             players: getUsersInRoom(room),
             timer: null,
+            timeLeft: 10,
             //라운드 수
             round: 0, 
         };
@@ -126,16 +129,16 @@ io.on('connection', (socket) =>{
         clearTimeout(game.timer);
         
         //남은 시간 보여주려고
-        let timeLeft = 10;
+        game.timeLeft = 10;
 
         //차례가 됬을 떄 시간타이머 기능
         game.timer = setInterval(() => {
-            timeLeft--;
-            io.to(room).emit('timeLeft', { timeLeft });
+            game.timeLeft--;
+            io.to(room).emit('timeLeft', { timeLeft: game.timeLeft  });
     
-            if (timeLeft <= 0) {
+            if (game.timeLeft <= 0) {
                 clearInterval(game.timer);
-                endTurn(room);
+                endRound(room);
             }
         }, 1000);
         
@@ -149,33 +152,49 @@ io.on('connection', (socket) =>{
     
         clearTimeout(game.timer);
         game.currentPlayerIndex = (game.currentPlayerIndex + 1) % game.players.length;
-        game.round += 1;
-
-        if (game.round >= 3) {
-            console.log('Game over');
-            delete games[room];  // 게임 상태 삭제
-            io.to(room).emit('gameover');
-            return;
-        }
        
         console.log(`Ending turn, next player is ${game.currentPlayerIndex}`);
         startTurn(room);
         
     }
+    
+    //점수 계산용 시간 가져오기
+    function getRemainingTime(room) {
+        const game = games[room];
+        if (!game) return 0;
+    
+        return game.timeLeft;
+    }
 
-    function endGame(room) {
-        const user = getUser(socket.id);
+    //라운드 종료
+    function endRound(room) {
         const game = games[room];
         if (!game) return;
     
-        console.log(`Game ended in room ${room}`);
-        // 게임 상태 초기화
-        setIsGameStarted(false);
-        round = 0;
-        currentWord = '';
+        io.to(room).emit('roundEnd');
+        currentWords[room] = '';
+        game.round += 1;
+        console.log(game.round);
 
-        clearInterval(game.timer);
+        if (game.round >= 2) {
+            console.log('Game over');
+            delete games[room];  // 게임 상태 삭제
+            io.to(room).emit('gameover');
+            game.currentPlayerIndex = 0;
+            return;
+        }else{
+        setTimeout(() => {
+            startTurn(room);
+        }, 5000); // 5초 후에 새로운 라운드 시작
     }
+    }
+
+
+    //점수 DB에 보내기
+    socket.on('sendScore', ({ score }) => {
+        console.log(`Score : ${score}`);
+    });
+    
 });
 
 
