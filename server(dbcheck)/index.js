@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5000;
 const router = require('./router.js');
 
 const mysql = require('mysql');  //주정
-const bcrypt = require('bcrypt'); //주정
+// const bcrypt = require('bcrypt'); //주정
 const path = require('path'); //주정
 
 const app = express();
@@ -45,8 +45,8 @@ app.post('/process/signup', async (req, res) => {
     const paramPw = req.body.pw;
 
     try {
-        const hashedPw = await bcrypt.hash(paramPw, 10);
-        pool.query('INSERT INTO `users` (id, pw) VALUES (?, ?)', [paramId, hashedPw], (error, results) => {
+        // const hashedPw = await bcrypt.hash(paramPw, 10);
+        pool.query('INSERT INTO `users` (id, pw) VALUES (?, ?)', [paramId, paramPw], (error, results) => {
             if (error) {
                 return res.status(500).json({ error });
             }
