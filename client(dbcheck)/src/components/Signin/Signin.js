@@ -16,7 +16,7 @@ function Signin() {
         console.log('Client : /process/login 호출한다');
 
         try {
-            const response = await axios.post('44.218.36.252:5000/process/login', {id, pw: password});
+            const response = await axios.post('http://44.218.36.252:5000/process/login', {id, pw: password});
             console.log('Client : /process/login 호출했다');
 
             // 응답 상태 코드 확인
@@ -43,7 +43,7 @@ function Signin() {
         console.log('Client : /process/signup 호출한다');
 
         try {
-            const response = await axios.post('44.218.36.252:5000/process/signup', {id, pw: password});
+            const response = await axios.post('http://44.218.36.252:5000/process/signup', {id, pw: password});
             console.log('Client : /process/signup 호출했다');
 
             if (response.status === 201) {

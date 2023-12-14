@@ -57,7 +57,7 @@ const Chat = ({ location }) => {
     };
 
     //서버로 둘 aws public 주소
-    const ENDPOINT = 'localhost:5000';
+    const ENDPOINT = '44.218.36.252:5000';
 
     //socket을 통해 name과 room url정보 전달
     useEffect(() => {
