@@ -17,6 +17,15 @@ const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
 
+let RoomsList = getUniqueRooms();
+const games = {};
+
+//지금 들어가있는 단어
+let currentWords = {};
+
+//최종점수 저장용
+let scores = {};
+
 app.use(cors()); // CORS 오류를 방지하기 위해 사용
 app.use(express.json()); // JSON 요청 본문을 파싱하기 위해 사용 //주정
 app.use(router);
@@ -166,7 +175,7 @@ io.on('connection', (socket) =>{
 
     //게임 시작
     socket.on('gameStart', ({ room }) => {
-        currentWord = '';
+        currentWords[room] = '';
 
         games[room] = {
             currentPlayerIndex: 0, 
@@ -233,7 +242,7 @@ io.on('connection', (socket) =>{
         game.round += 1;
         console.log(game.round);
 
-        if (game.round >= 1) {
+        if (game.round >= 3) {
             console.log('Game over');
             io.to(room).emit('gameover', scores);
             delete games[room];  // 게임 상태 삭제
