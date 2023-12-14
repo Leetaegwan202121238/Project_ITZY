@@ -36,6 +36,11 @@ const Chat = ({ location }) => {
     //최종 점수 게시판용
     const [finalScores, setFinalScores] = useState(null);
 
+
+    //현재 단어
+    const [currentWord, setCurrentWord] = useState('');
+
+
     //노래용
     const correctSound = new Audio(correct);
     const wrongSound = new Audio(wrong);
@@ -65,7 +70,7 @@ const Chat = ({ location }) => {
     };
 
     //서버로 둘 aws public 주소
-    const ENDPOINT = '44.218.36.252:5000';
+    const ENDPOINT = 'localhost:5000';
 
     //socket을 통해 name과 room url정보 전달
     useEffect(() => {
@@ -183,9 +188,10 @@ const Chat = ({ location }) => {
 
     //효과음 넣기
     useEffect(() => {
-        const handleCorrectSignal = ({ score }) => {
+        const handleCorrectSignal = ({ score, currentWord }) => {
             correctSound.play(); 
             setScore(prevScore => prevScore + score);
+            setCurrentWord(currentWord);
         };
         const handleWrongSignal = () => {
             wrongSound.play(); 
@@ -217,20 +223,31 @@ const Chat = ({ location }) => {
         };
     }, []);
 
+    useEffect(() => {
+        socket.on('current', ({ currentWord }) => {
+            setCurrentWord(currentWord);
+            console.log(currentWord)
+        });
+    
+        return () => {
+            socket.off('current');
+        };
+    }, []);
+
     
     return (
         <div className="outerContainer">
             <div className="container">
                 <InfoBar room={room} />
                 <Messages messages={messages} name ={name} />               
-                <Input message = {message} setMessage = {setMessage} sendMessage={sendMessage} />
+                <Input message = {message} setMessage = {setMessage} sendMessage={sendMessage} word={currentWord}/>
                 <button onClick={handleGameStart} style={{ backgroundColor: myIndex === 0 && !isGameStarted ? '#3399FF' : 'grey' }}>게임 시작</button>
-                {isGameStarted && <p>{`지금은 ${currentPlayer +1}번의 차례입니다!`}</p>}
-                {!isGameStarted && <p>{`당신은 ${myIndex + 1}번입니다! 잘 기억하세요`}</p>}
+                <p>{`지금은 ${currentPlayer +1}번의 차례입니다!`}</p>
+                <p>{`당신은 ${myIndex + 1}번입니다! 잘 기억하세요`}</p>
                 {isMyTurn && <p> 당신 차례입니다! </p>}
                 <p id="timer">{isMyTurn ? '남은 시간: 10' : ''}</p>
 
-                <p>Score: {score}</p>
+                <p>Score: {score} </p>
                 
                 {/* 플레이어 이미지 */}
                 {Array(numberOfUsers).fill().map((_, i) => (

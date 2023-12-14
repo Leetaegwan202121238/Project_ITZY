@@ -147,8 +147,9 @@ io.on('connection', (socket) =>{
                     const remainingTime = getRemainingTime(user.room);
                     const messageScore = message.length * remainingTime;
                     console.log('score : ', messageScore);
-                    io.to(user.id).emit('correctSignal', { score: messageScore });
-                    
+                    io.to(user.id).emit('correctSignal', { currentWord: currentWords[user.room], score: messageScore });
+                    io.to(user.room).emit('current', { currentWord: currentWords[user.room]});
+                    console.log(currentWords[user.room]);
                 }
                 else{
                     callback('표준어가 아닙니다.')
