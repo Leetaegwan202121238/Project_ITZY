@@ -17,7 +17,6 @@ const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
 
-
 app.use(cors()); // CORS 오류를 방지하기 위해 사용
 app.use(express.json()); // JSON 요청 본문을 파싱하기 위해 사용 //주정
 app.use(router);
