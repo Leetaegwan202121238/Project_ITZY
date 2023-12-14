@@ -7,6 +7,7 @@ import io from 'socket.io-client';
 import correct from '../../bgm/correct.mp3';
 import wrong from '../../bgm/incorrect.mp3';
 import roundEnd from '../../bgm/roundEnd.mp3';
+import maintheme from '../../bgm/main_theme.mp3';
 
 //이미지 불러오기
 import player from '../../icons/player.png';
@@ -35,16 +36,23 @@ const Chat = ({ location }) => {
     //최종 점수 게시판용
     const [finalScores, setFinalScores] = useState(null);
 
+    //노래용
     const correctSound = new Audio(correct);
     const wrongSound = new Audio(wrong);
     const roundEndSound = new Audio(roundEnd);
     const playerimage = new Image(player);
+
+    roundEndSound.volume = 0.4;
 
     //게임 시작되면 true로 바꿀 변수(게임 중인지 아닌지 확인하려고)
     const [isGameStarted, setIsGameStarted] = useState(false);
     
     //차례때문에 만든 인덱스
     const [myIndex, setMyIndex] = useState(null);
+    const [isMyTurn, setIsMyTurn] = useState(false);
+    const [currentPlayer, setCurrentPlayer] = useState(null);
+
+    
     //채팅 활성화
     const [chatEnabled, setChatEnabled] = useState(false);
 
@@ -92,7 +100,6 @@ const Chat = ({ location }) => {
         console.log("Current messages: ", messages); // 현재 메시지 상태 확인
     }, [messages]);
 
-    
 
     //메시지 보내기
     const sendMessage = (event) => {
@@ -110,6 +117,7 @@ const Chat = ({ location }) => {
             if(isGameStarted === false){
                 socket.emit('gameStart', { room });
                 setIsGameStarted(true);
+
             }else{
                 alert("지금은 게임 중입니다");
             }
@@ -122,18 +130,21 @@ const Chat = ({ location }) => {
     //차례랑 timer기능
     useEffect(() => {
         if (!socket) return;
-    
+        
         const timerHandler = (data) => {
             document.getElementById('timer').innerText = data.timeLeft;
         };
     
         const turnHandler = (data) => {
-            if (data.currentPlayerIndex === myIndex) {
+            setCurrentPlayer(data.currentPlayer);
+            if (data.currentPlayer === myIndex) {
                 // It's my turn.
                 enableChatInput();
+                setIsMyTurn(true);
             } else {
                 // It's not my turn.
                 disableChatInput();
+                setIsMyTurn(false);
             }
         };
     
@@ -205,6 +216,7 @@ const Chat = ({ location }) => {
             socket.off('usersCount');
         };
     }, []);
+
     
     return (
         <div className="outerContainer">
@@ -213,7 +225,10 @@ const Chat = ({ location }) => {
                 <Messages messages={messages} name ={name} />               
                 <Input message = {message} setMessage = {setMessage} sendMessage={sendMessage} />
                 <button onClick={handleGameStart} style={{ backgroundColor: myIndex === 0 && !isGameStarted ? '#3399FF' : 'grey' }}>게임 시작</button>
-                <p id="timer">10</p>
+                {isGameStarted && <p>{`지금은 ${currentPlayer +1}번의 차례입니다!`}</p>}
+                {!isGameStarted && <p>{`당신은 ${myIndex + 1}번입니다! 잘 기억하세요`}</p>}
+                {isMyTurn && <p> 당신 차례입니다! </p>}
+                <p id="timer">{isMyTurn ? '남은 시간: 10' : ''}</p>
 
                 <p>Score: {score}</p>
                 

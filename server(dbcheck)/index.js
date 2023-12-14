@@ -256,6 +256,7 @@ io.on('connection', (socket) =>{
         const user = getUser(socket.id);
         scores[user.name] = score;
     });
+
     
 });
 
