@@ -1,0 +1,35 @@
+.title-button {
+    background-color: rgb(110, 107, 107);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 30px;
+    margin: 0 auto;
+    display: block;
+  }
+  
+  .room-item {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    background-color: white;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .back-button {
+    background-color: blue;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  .room-button {
+    background-color: green;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 16px;
+    border: none;
+    cursor: default;
+  }

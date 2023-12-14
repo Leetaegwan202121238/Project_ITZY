@@ -11,8 +11,6 @@ import roundEnd from '../../bgm/roundEnd.mp3';
 //이미지 불러오기
 import player from '../../icons/player.png';
 
-
-
 import './Chat.css';
 import InfoBar from '../InfoBar/InfoBar';
 import Input from '../Input/Input';

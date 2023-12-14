@@ -86,8 +86,6 @@ app.post('/process/login', (req, res) => {
     });
 });
 
-
-
 app.use(router);
 app.use(cors());
 app.get('/rooms', (req, res) => {
@@ -193,14 +191,14 @@ io.on('connection', (socket) =>{
         clearTimeout(game.timer);
         
         //남은 시간 보여주려고
-        let timeLeft = 10;
+        game.timeLeft = 10;
 
         //차례가 됬을 떄 시간타이머 기능
         game.timer = setInterval(() => {
-            timeLeft--;
+            game.timeLeft--;
             io.to(room).emit('timeLeft', { timeLeft : game.timeLeft });
     
-            if (timeLeft <= 0) {
+            if (game.timeLeft <= 0) {
                 clearInterval(game.timer);
                 endRound(room);
             }

@@ -12,7 +12,7 @@ const Rooms = () => {
 
   const fetchRoomsFromServer = async () => {
     try {
-      const response = await fetch('44.218.36.252:5000/rooms');
+      const response = await fetch('localhost:5000/rooms');
       const data = await response.json(); 
       setRooms(data); // 데이터를 상태로 설정
     } catch (error) {
