@@ -17,6 +17,7 @@ import './Chat.css';
 import InfoBar from '../InfoBar/InfoBar';
 import Input from '../Input/Input';
 import Messages from '../Messages/Messages';
+import ScoreBoard from '../ScoreBoard/ScoreBoard';
 
 let socket;
 
@@ -30,6 +31,10 @@ const Chat = ({ location }) => {
 
     //점수 및 경험치용
     const [score, setScore] = useState(0);
+    
+    //최종 점수 게시판용
+    const [finalScores, setFinalScores] = useState(null);
+
 
     const correctSound = new Audio(correct);
     const wrongSound = new Audio(wrong);
@@ -144,31 +149,51 @@ const Chat = ({ location }) => {
 
     //게임 종료 이벤트 받기
     useEffect(() => {
-    socket.on('gameover', () => {
+
+        const handleGameOver = (scores) => {
+            // 서버에서 받은 점수를 저장
+            setFinalScores(scores);
+
+            //게임상태 초기화
+            setScore(0);
+            setIsGameStarted(false);
+        };
 
         //서버에 점수 보내기   
         socket.emit('sendScore', { score });
-        setScore(0);
+        socket.on('gameover', handleGameOver);
+    
+        // Cleanup
+        return () => {
+            socket.off('gameover', handleGameOver);
+        };
 
-        //게임상태 초기화
-        setIsGameStarted(false);
-    });
     },[score]);
 
 
     //효과음 넣기
     useEffect(() => {
-    socket.on('correctSignal', ({ score }) => {
-        correctSound.play(); 
-
-        setScore(prevScore => prevScore + score);
-    });
-    socket.on('wrongSignal', function() {
-        wrongSound.play(); 
-    });
-    socket.on('roundEnd', function() {
-        roundEndSound.play(); 
-    });
+        const handleCorrectSignal = ({ score }) => {
+            correctSound.play(); 
+            setScore(prevScore => prevScore + score);
+        };
+        const handleWrongSignal = () => {
+            wrongSound.play(); 
+        };
+        const handleRoundEnd = () => {
+            roundEndSound.play(); 
+        };
+    
+        socket.on('correctSignal', handleCorrectSignal);
+        socket.on('wrongSignal', handleWrongSignal);
+        socket.on('roundEnd', handleRoundEnd);
+            
+        //이벤트 핸들러 끊어질 떄 삭제해서 버그방지
+        return () => {
+            socket.off('correctSignal', handleCorrectSignal);
+            socket.off('wrongSignal', handleWrongSignal);
+            socket.off('roundEnd', handleRoundEnd);
+        };
     },[]);
 
     //사람 몇명 들어왔나
@@ -192,13 +217,17 @@ const Chat = ({ location }) => {
                 <Messages messages={messages} name ={name} />               
                 <Input message = {message} setMessage = {setMessage} sendMessage={sendMessage} />
                 <button onClick={handleGameStart} style={{ backgroundColor: myIndex === 0 && !isGameStarted ? '#3399FF' : 'grey' }}>게임 시작</button>
+
                 <p id="timer">10</p>
 
-                {/* Render images */}
+                <p>Score: {score}</p>
+                
+                {/* 플레이어 이미지 */}
                 {Array(numberOfUsers).fill().map((_, i) => (
                 <img key={i} src={player} alt="Player" />
             ))}
             </div>
+            <ScoreBoard gameOverScores={finalScores} />
         </div>
     )
 }

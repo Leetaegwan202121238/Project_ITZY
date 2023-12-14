@@ -18,6 +18,9 @@ const games = {};
 //지금 들어가있는 단어
 let currentWords = {};
 
+//최종점수 저장용
+let scores = {};
+
 //리눅스에선 이거 추가해야함
 //const fetch = require('node-fetch'); 
 
@@ -57,6 +60,7 @@ io.on('connection', (socket) =>{
         callback(myIndex); 
 
         RoomsList = getUniqueRooms();
+
         //방에 몇명있나
         const numberOfUsers = usersInRoom.length;
         io.to(user.room).emit('usersCount', numberOfUsers);
@@ -80,13 +84,14 @@ io.on('connection', (socket) =>{
                     io.to(user.room).emit('message', { user: user.name, text: message});
                     io.to(user.room).emit('message', { user: user.name, text: "뜻 : " + apiresult.channel.item[rannum].sense.definition})
                     endTurn(user.room);
-                    console.log(message)
+
                     currentWords[user.room] = message;
 
                     //정답 소리내기 및 점수 보내기
-                    const remainingTime = getRemainingTime();
+                    const remainingTime = getRemainingTime(user.room);
                     const messageScore = message.length * remainingTime;
-                    io.to(user.room).emit('correctSignal', { score: messageScore });
+                    console.log('score : ', messageScore);
+                    io.to(user.id).emit('correctSignal', { score: messageScore });
                     
                 }
                 else{
@@ -154,15 +159,14 @@ io.on('connection', (socket) =>{
         game.currentPlayerIndex = (game.currentPlayerIndex + 1) % game.players.length;
        
         console.log(`Ending turn, next player is ${game.currentPlayerIndex}`);
-        startTurn(room);
         
+        startTurn(room);
     }
     
     //점수 계산용 시간 가져오기
     function getRemainingTime(room) {
         const game = games[room];
-        if (!game) return 0;
-    
+
         return game.timeLeft;
     }
 
@@ -176,10 +180,11 @@ io.on('connection', (socket) =>{
         game.round += 1;
         console.log(game.round);
 
-        if (game.round >= 2) {
+        if (game.round >= 1) {
             console.log('Game over');
+            io.to(room).emit('gameover', scores);
             delete games[room];  // 게임 상태 삭제
-            io.to(room).emit('gameover');
+            scores = {}; // 최종 점수 초기화(중간점수 아님, 최종 모든 방 유저들 점수 모아놓은거임)
             game.currentPlayerIndex = 0;
             return;
         }else{
@@ -189,10 +194,10 @@ io.on('connection', (socket) =>{
     }
     }
 
-
-    //점수 DB에 보내기
+    //점수 클라이언트에서 받기
     socket.on('sendScore', ({ score }) => {
-        console.log(`Score : ${score}`);
+        const user = getUser(socket.id);
+        scores[user.name] = score;
     });
     
 });
