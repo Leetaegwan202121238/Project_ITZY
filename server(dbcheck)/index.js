@@ -52,7 +52,7 @@ app.post('/process/signup', async (req, res) => {
 
     try {
         // const hashedPw = await bcrypt.hash(paramPw, 10);
-        pool.query('INSERT INTO `users` (id, pw) VALUES (?, ?)', [paramId, paramPw], (error, results) => {
+        pool.query('INSERT INTO `users` (id, pw, total_score) VALUES (?, ?, ?)', [paramId, paramPw, 0], (error, results) => {
             if (error) {
                 return res.status(500).json({ error });
             }
@@ -122,6 +122,18 @@ io.on('connection', (socket) =>{
         const numberOfUsers = usersInRoom.length;
         io.to(user.room).emit('usersCount', numberOfUsers);
     });
+
+    socket.on('reqtotscore', (name1, callback) => {
+        pool.query('SELECT `total_score` FROM `users` WHERE `id` = ?;', [name1], async (error, results) => {
+            callback(results[0]);
+        })
+    })
+
+    socket.on('reqtotplay', (name2, callback) => {
+        pool.query('SELECT `total_play` FROM `users` WHERE `id` = ?;', [name2], async (error, results) => {
+            callback(results[0]);
+        })
+    })
 
     socket.on('sendMessage', (message, callback) => {
         const user = getUser(socket.id);
@@ -242,6 +254,13 @@ io.on('connection', (socket) =>{
             console.log('Game over');
             io.to(room).emit('gameover', scores);
             delete games[room];  // 게임 상태 삭제
+            for (let name of Object.keys(scores)) {
+                // pool.query('SELECT `total_score` FROM `users` WHERE')
+                pool.query('UPDATE `users` SET total_score=total_score+?, total_play=total_play+1  where id=?', [scores[name], name], (error, results) => {
+                    if(error) console.log("db update error");
+                    else console.log("db update good");
+                });
+            }
             scores = {}; // 최종 점수 초기화(중간점수 아님, 최종 모든 방 유저들 점수 모아놓은거임)
             game.currentPlayerIndex = 0;
             return;
