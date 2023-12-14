@@ -17,9 +17,6 @@ const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
 
-let RoomsList = getUniqueRooms();
-const games = {};
-
 //지금 들어가있는 단어
 let currentWords = {};
 
