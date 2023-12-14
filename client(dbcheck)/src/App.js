@@ -1,5 +1,6 @@
 import Join from './components/Join/Join';
 import Chat from './components/Chat/Chat';
+import Rooms from './components/Rooms';
 
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
@@ -16,6 +17,7 @@ function App() {
                 {/* 로그인 성공 후 이동할 경로 */}
                 <Route path="/join" element={<Join />} />
                 <Route path="/chat" element={<Chat />} />
+                <Route path="/rooms" element={<Rooms />}/>
                 {/* 다른 라우트들을 추가합니다. */}
             </Routes>
         </Router>
