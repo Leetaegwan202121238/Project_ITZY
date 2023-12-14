@@ -79,7 +79,7 @@ app.post('/process/login', (req, res) => {
             return res.status(401).json({ message: 'Authentication failed' });
         }
         // const match = await bcrypt.compare(paramPw, results[0].pw);
-        if (result[0].pw!=paramPw) {
+        if (results[0].pw!=paramPw) {
             return res.status(401).json({ message: 'Authentication failed' });
         }
         res.status(200).json({ message: 'Logged in successfully' });

@@ -8,6 +8,9 @@ import correct from '../../bgm/correct.mp3';
 import wrong from '../../bgm/incorrect.mp3';
 import roundEnd from '../../bgm/roundEnd.mp3';
 
+//이미지 불러오기
+import player from '../../icons/player.png';
+
 import './Chat.css';
 import InfoBar from '../InfoBar/InfoBar';
 import Input from '../Input/Input';
@@ -216,7 +219,7 @@ const Chat = ({ location }) => {
                 
                 {/* 플레이어 이미지 */}
                 {Array(numberOfUsers).fill().map((_, i) => (
-                <img key={i} src={player} alt="Player" />
+                <img key={i} src={playerimage} alt="Player" />
                 ))}
             </div>
             <ScoreBoard gameOverScores={finalScores} />
