@@ -38,6 +38,8 @@ const Chat = ({ location }) => {
 
 
     //현재 단어
+    const [TotalScore, setTotalScore] = useState(null);
+    const [Totalplay, setTotalplay] = useState(null);
     const [currentWord, setCurrentWord] = useState('');
 
 
@@ -46,9 +48,7 @@ const Chat = ({ location }) => {
     const wrongSound = new Audio(wrong);
     const roundEndSound = new Audio(roundEnd);
     const playerimage = new Image(player);
-
-    roundEndSound.volume = 0.4;
-
+    roundEndSound.volume = 0.1;
     //게임 시작되면 true로 바꿀 변수(게임 중인지 아닌지 확인하려고)
     const [isGameStarted, setIsGameStarted] = useState(false);
     
@@ -83,6 +83,14 @@ const Chat = ({ location }) => {
 
         socket.emit('join', { name, room }, (index) => {
             setMyIndex(index);
+        });
+
+        socket.emit('reqtotscore', name, (TotalScore1) => {
+            setTotalScore(TotalScore1['total_score']);
+        });
+
+        socket.emit('reqtotplay', name, (Totalplay) => {
+            setTotalplay(Totalplay['total_play']);
         });
 
         return () => {
@@ -242,17 +250,12 @@ const Chat = ({ location }) => {
                 <Messages messages={messages} name ={name} />               
                 <Input message = {message} setMessage = {setMessage} sendMessage={sendMessage} word={currentWord}/>
                 <button onClick={handleGameStart} style={{ backgroundColor: myIndex === 0 && !isGameStarted ? '#3399FF' : 'grey' }}>게임 시작</button>
-                <p>{`지금은 ${currentPlayer +1}번의 차례입니다!`}</p>
+                {/* <p>{`지금은 ${currentPlayer +1}번의 차례입니다!`}</p>
                 <p>{`당신은 ${myIndex + 1}번입니다! 잘 기억하세요`}</p>
-                {isMyTurn && <p> 당신 차례입니다! </p>}
+                {isMyTurn && <p> 당신 차례입니다! </p>} */}
                 <p id="timer">{isMyTurn ? '남은 시간: 10' : ''}</p>
-
-                <p>Score: {score} </p>
-                
-                {/* 플레이어 이미지 */}
-                {Array(numberOfUsers).fill().map((_, i) => (
-                <img key={i} src={player} alt="Player" />
-                ))}
+                <p>Score : {score}</p>
+                {/* <p className='p'>total_score : {TotalScore}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;total_play : {Totalplay}</p> */}
             </div>
             <ScoreBoard gameOverScores={finalScores} />
         </div>
